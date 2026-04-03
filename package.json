@@ -7,8 +7,9 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npx drizzle-kit push --force && next build",
+    "build": "npx tsx src/db/migrate.ts && next build",
     "build:local": "next build",
+    "db:push": "npx drizzle-kit push",
     "start": "next start",
     "lint": "eslint"
   },
@@ -43,6 +44,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
