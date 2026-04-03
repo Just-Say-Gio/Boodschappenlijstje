@@ -7,6 +7,7 @@ import {
   listMembers,
   items,
   activityLog,
+  agendaTopics,
 } from "@/db/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -329,4 +330,68 @@ export async function getListItems(listId: string) {
     },
   });
   return listItems;
+}
+
+// ── Agenda / Planning ──────────────────────────────────────────────────────
+
+export async function getAgendaTopics() {
+  await ensureMigrated();
+  const topics = await db.query.agendaTopics.findMany({
+    orderBy: [asc(agendaTopics.date), asc(agendaTopics.sortOrder)],
+    with: {
+      creator: true,
+      checkedByProfile: true,
+    },
+  });
+  return topics;
+}
+
+export async function addAgendaTopic(
+  title: string,
+  date: string,
+  description: string | null,
+  timeSlot: string | null,
+  createdBy: string
+) {
+  await ensureMigrated();
+  const [topic] = await db
+    .insert(agendaTopics)
+    .values({ title, date, description, timeSlot, createdBy })
+    .returning();
+  return topic;
+}
+
+export async function toggleAgendaTopic(topicId: string, profileId: string) {
+  await ensureMigrated();
+  const existing = await db.query.agendaTopics.findFirst({
+    where: eq(agendaTopics.id, topicId),
+  });
+  if (!existing) return null;
+
+  const newChecked = !existing.checked;
+  const [updated] = await db
+    .update(agendaTopics)
+    .set({
+      checked: newChecked,
+      checkedBy: newChecked ? profileId : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(agendaTopics.id, topicId))
+    .returning();
+  return updated;
+}
+
+export async function updateAgendaNotes(topicId: string, notes: string) {
+  await ensureMigrated();
+  const [updated] = await db
+    .update(agendaTopics)
+    .set({ notes, updatedAt: new Date() })
+    .where(eq(agendaTopics.id, topicId))
+    .returning();
+  return updated;
+}
+
+export async function removeAgendaTopic(topicId: string) {
+  await ensureMigrated();
+  await db.delete(agendaTopics).where(eq(agendaTopics.id, topicId));
 }

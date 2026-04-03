@@ -110,6 +110,33 @@ export const itemsRelations = relations(items, ({ one }) => ({
   }),
 }));
 
+// ── Agenda Topics (Planning Mode) ──────────────────────────────────────────
+export const agendaTopics = pgTable("agenda_topics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  description: text("description"),
+  date: text("date").notNull(), // "2026-04-03"
+  timeSlot: text("time_slot"), // "avond", "ochtend", "middag"
+  checked: boolean("checked").default(false),
+  checkedBy: uuid("checked_by").references(() => profiles.id),
+  createdBy: uuid("created_by").references(() => profiles.id),
+  sortOrder: integer("sort_order").notNull().default(0),
+  notes: text("notes"), // co-creatie notities van iedereen
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const agendaTopicsRelations = relations(agendaTopics, ({ one }) => ({
+  creator: one(profiles, {
+    fields: [agendaTopics.createdBy],
+    references: [profiles.id],
+  }),
+  checkedByProfile: one(profiles, {
+    fields: [agendaTopics.checkedBy],
+    references: [profiles.id],
+  }),
+}));
+
 // ── Activity Log ────────────────────────────────────────────────────────────
 export const activityLog = pgTable("activity_log", {
   id: uuid("id").primaryKey().defaultRandom(),

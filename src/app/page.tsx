@@ -143,13 +143,20 @@ export default function Home() {
           </Button>
         </div>
 
-        {/* New list button */}
-        <Link href="/lijst/nieuw">
-          <Button className="w-full h-12 bg-white text-cyan-800 hover:bg-white/90 font-semibold text-base shadow-md">
-            <Plus className="size-5 mr-2" />
-            Nieuwe lijst
-          </Button>
-        </Link>
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <Link href="/lijst/nieuw" className="flex-1">
+            <Button className="w-full h-12 bg-white text-cyan-800 hover:bg-white/90 font-semibold text-base shadow-md">
+              <Plus className="size-5 mr-2" />
+              Nieuwe lijst
+            </Button>
+          </Link>
+          <Link href="/planning">
+            <Button className="h-12 px-4 bg-white/20 text-white hover:bg-white/30 font-semibold text-base border border-white/30">
+              🗓️ Planning
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Tab Toggle */}

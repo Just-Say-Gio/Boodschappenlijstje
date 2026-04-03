@@ -65,6 +65,22 @@ export async function ensureMigrated() {
         created_at TIMESTAMP DEFAULT now() NOT NULL
       )
     `;
+    await client`
+      CREATE TABLE IF NOT EXISTS agenda_topics (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title TEXT NOT NULL,
+        description TEXT,
+        date TEXT NOT NULL,
+        time_slot TEXT,
+        checked BOOLEAN DEFAULT false NOT NULL,
+        checked_by UUID REFERENCES profiles(id),
+        created_by UUID REFERENCES profiles(id),
+        sort_order INTEGER DEFAULT 0 NOT NULL,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT now() NOT NULL,
+        updated_at TIMESTAMP DEFAULT now() NOT NULL
+      )
+    `;
     console.log("Database tables ensured");
   } catch (err) {
     console.error("Migration error:", err);
