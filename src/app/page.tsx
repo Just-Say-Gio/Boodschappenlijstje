@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Settings, Plus, ShoppingCart, Users } from "lucide-react";
+import { Settings, Plus, ShoppingCart, Users, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   type LocalProfile,
 } from "@/lib/profile";
 import { createProfile, getAllLists } from "@/lib/actions";
+import { toast } from "sonner";
 
 interface ListSummary {
   id: string;
@@ -24,6 +25,8 @@ interface ListSummary {
   creator: { name: string; emoji: string; color: string } | null;
   updatedAt: string;
 }
+
+const APP_URL = "https://boodschappenlijstje-production.up.railway.app";
 
 export default function Home() {
   const [profile, setProfile] = useState<LocalProfile | null>(null);
@@ -37,6 +40,9 @@ export default function Home() {
     const stored = getLocalProfile();
     if (stored) {
       setProfile(stored);
+    } else {
+      // Auto-open profile dialog if no profile
+      setShowProfileDialog(true);
     }
     loadLists();
   }, []);
@@ -94,6 +100,27 @@ export default function Home() {
     }
   };
 
+  const handleNewList = (e: React.MouseEvent) => {
+    if (!profile) {
+      e.preventDefault();
+      setShowProfileDialog(true);
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const message = `🌴 Check onze Koh Samui boodschappenlijst! ${APP_URL}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(APP_URL);
+      toast.success("Link gekopieerd!");
+    } catch {
+      toast.error("Kon de link niet kopiëren");
+    }
+  };
+
   if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background">
@@ -131,21 +158,47 @@ export default function Home() {
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={() =>
-              setShowProfileDialog(true)
-            }
-          >
-            <Settings className="size-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={handleShareWhatsApp}
+              title="Deel via WhatsApp"
+            >
+              <MessageCircle className="size-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={() =>
+                setShowProfileDialog(true)
+              }
+            >
+              <Settings className="size-5" />
+            </Button>
+          </div>
         </div>
+
+        {/* Banner if no profile */}
+        {!profile && (
+          <div className="bg-white/20 rounded-xl px-4 py-3 mb-4 text-center border border-white/30">
+            <p className="text-sm font-medium text-white">
+              Maak eerst een profiel aan om mee te doen!
+            </p>
+            <Button
+              onClick={() => setShowProfileDialog(true)}
+              className="mt-2 bg-white text-cyan-800 hover:bg-white/90 text-sm font-semibold h-9 px-6"
+            >
+              Profiel aanmaken
+            </Button>
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex gap-2">
-          <Link href="/lijst/nieuw" className="flex-1">
+          <Link href="/lijst/nieuw" className="flex-1" onClick={handleNewList}>
             <Button className="w-full h-12 bg-white text-cyan-800 hover:bg-white/90 font-semibold text-base shadow-md">
               <Plus className="size-5 mr-2" />
               Nieuwe lijst
@@ -284,7 +337,7 @@ export default function Home() {
 
       {/* Floating + button on mobile */}
       <div className="fixed bottom-6 right-6 z-20 sm:hidden">
-        <Link href="/lijst/nieuw">
+        <Link href="/lijst/nieuw" onClick={handleNewList}>
           <Button
             size="icon"
             className="size-14 rounded-full bg-cyan-700 hover:bg-cyan-800 text-white shadow-lg"

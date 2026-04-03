@@ -9,8 +9,8 @@ export interface GroceryItem {
   quantity: string | null;
   category: string;
   checked: boolean;
-  addedBy: { emoji: string; color: string };
-  checkedBy?: { emoji: string; color: string };
+  addedBy: { emoji: string; color: string; name?: string };
+  checkedBy?: { emoji: string; color: string; name?: string };
 }
 
 interface ItemRowProps {
@@ -54,23 +54,42 @@ export function ItemRow({ item, onToggle }: ItemRowProps) {
             </Badge>
           )}
         </div>
+        {/* Show "checked by" info when item is checked */}
+        {item.checked && item.checkedBy && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            ✓ Afgevinkt door {item.checkedBy.emoji} {item.checkedBy.name || ""}
+          </p>
+        )}
       </div>
 
-      {/* Added-by avatar */}
+      {/* Added-by avatar - bigger, with name on hover */}
       <div
-        className="flex items-center justify-center rounded-full shrink-0 text-xs"
-        style={{
-          width: 28,
-          height: 28,
-          backgroundColor: item.checked && item.checkedBy
-            ? item.checkedBy.color
-            : item.addedBy.color,
-        }}
-        title={item.checked ? "Afgevinkt" : "Toegevoegd"}
+        className="flex items-center gap-1.5 shrink-0"
+        title={
+          item.checked && item.checkedBy
+            ? `Afgevinkt door ${item.checkedBy.emoji} ${item.checkedBy.name || ""}`
+            : `Toegevoegd door ${item.addedBy.emoji} ${item.addedBy.name || ""}`
+        }
       >
-        {item.checked && item.checkedBy
-          ? item.checkedBy.emoji
-          : item.addedBy.emoji}
+        <div
+          className="flex items-center justify-center rounded-full text-sm"
+          style={{
+            width: 32,
+            height: 32,
+            backgroundColor: item.checked && item.checkedBy
+              ? item.checkedBy.color
+              : item.addedBy.color,
+          }}
+        >
+          {item.checked && item.checkedBy
+            ? item.checkedBy.emoji
+            : item.addedBy.emoji}
+        </div>
+        <span className="text-xs text-muted-foreground hidden sm:inline max-w-[60px] truncate">
+          {item.checked && item.checkedBy
+            ? item.checkedBy.name
+            : item.addedBy.name}
+        </span>
       </div>
     </div>
   );

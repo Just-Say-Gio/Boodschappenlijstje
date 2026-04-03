@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { ProfileGuard } from "@/components/profile-guard";
 import { getLocalProfile } from "@/lib/profile";
 import { createList, ensureProfileInDb } from "@/lib/actions";
 
@@ -47,72 +48,74 @@ export default function NieuweLijstPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-dvh bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b">
-        <div className="flex items-center gap-3 px-4 h-14">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="size-5" />
-            </Button>
-          </Link>
-          <h1 className="text-lg font-semibold">Nieuwe lijst</h1>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-1 px-4 py-8">
-        <div className="max-w-md mx-auto flex flex-col gap-6">
-          {/* List name input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="lijst-naam"
-              className="text-sm font-medium text-foreground"
-            >
-              Naam van de lijst
-            </label>
-            <Input
-              id="lijst-naam"
-              placeholder="Bijv. Weekboodschappen, BBQ, Feestje..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="h-12 text-lg px-4"
-              autoFocus
-            />
+    <ProfileGuard>
+      <div className="flex flex-col min-h-dvh bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b">
+          <div className="flex items-center gap-3 px-4 h-14">
+            <Link href="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="size-5" />
+              </Button>
+            </Link>
+            <h1 className="text-lg font-semibold">Nieuwe lijst</h1>
           </div>
+        </header>
 
-          {/* Quick suggestion chips */}
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Snel kiezen:</p>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_SUGGESTIONS.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  type="button"
-                  onClick={() => setName(suggestion)}
-                  className={`px-4 py-2 text-sm rounded-full border transition-all duration-150 ${
-                    name === suggestion
-                      ? "bg-cyan-700 text-white border-cyan-700"
-                      : "bg-background text-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  {suggestion}
-                </button>
-              ))}
+        {/* Content */}
+        <main className="flex-1 px-4 py-8">
+          <div className="max-w-md mx-auto flex flex-col gap-6">
+            {/* List name input */}
+            <div className="space-y-2">
+              <label
+                htmlFor="lijst-naam"
+                className="text-sm font-medium text-foreground"
+              >
+                Naam van de lijst
+              </label>
+              <Input
+                id="lijst-naam"
+                placeholder="Bijv. Weekboodschappen, BBQ, Feestje..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="h-12 text-lg px-4"
+                autoFocus
+              />
             </div>
-          </div>
 
-          {/* Create button */}
-          <Button
-            onClick={handleCreate}
-            disabled={!name.trim() || creating}
-            className="h-12 text-base font-medium bg-cyan-700 hover:bg-cyan-800 text-white w-full"
-          >
-            Aanmaken
-          </Button>
-        </div>
-      </main>
-    </div>
+            {/* Quick suggestion chips */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Snel kiezen:</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_SUGGESTIONS.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setName(suggestion)}
+                    className={`px-4 py-2 text-sm rounded-full border transition-all duration-150 ${
+                      name === suggestion
+                        ? "bg-cyan-700 text-white border-cyan-700"
+                        : "bg-background text-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Create button */}
+            <Button
+              onClick={handleCreate}
+              disabled={!name.trim() || creating}
+              className="h-12 text-base font-medium bg-cyan-700 hover:bg-cyan-800 text-white w-full"
+            >
+              Aanmaken
+            </Button>
+          </div>
+        </main>
+      </div>
+    </ProfileGuard>
   );
 }
