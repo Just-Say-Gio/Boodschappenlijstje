@@ -128,3 +128,27 @@
     @apply font-sans;
   }
 }
+
+/* Safe area for mobile */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Smooth touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Fun gradient for headers */
+.gradient-header {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+}
+
+/* Checked item animation */
+.item-checked {
+  text-decoration: line-through;
+  opacity: 0.5;
+  transition: all 0.2s ease-in-out;
+}

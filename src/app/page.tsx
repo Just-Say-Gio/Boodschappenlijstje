@@ -1,65 +1,300 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Settings, Plus, ShoppingCart, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ProfielDialog } from "@/components/profiel-dialog";
+import {
+  getLocalProfile,
+  setLocalProfile,
+  type LocalProfile,
+} from "@/lib/profile";
+import { createProfile, getMyLists } from "@/lib/actions";
+
+interface ListSummary {
+  id: string;
+  name: string;
+  itemCount: number;
+  checkedCount: number;
+  memberCount: number;
+  members: Array<{ emoji: string; color: string }>;
+  updatedAt: string;
+}
 
 export default function Home() {
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState<"actief" | "archief">("actief");
+  const [mounted, setMounted] = useState(false);
+  const [lists, setLists] = useState<ListSummary[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = getLocalProfile();
+    if (stored) {
+      setProfile(stored);
+      loadLists(stored.id);
+    } else {
+      setShowProfileDialog(true);
+    }
+  }, []);
+
+  async function loadLists(profileId: string) {
+    try {
+      const myLists = await getMyLists(profileId);
+      setLists(
+        myLists.map((l) => ({
+          id: l.id,
+          name: l.name,
+          itemCount: l.items.length,
+          checkedCount: l.items.filter((i) => i.checked).length,
+          memberCount: l.members.length,
+          members: l.members.map((m) => ({
+            emoji: m.profile.emoji,
+            color: m.profile.color,
+          })),
+          updatedAt: l.updatedAt
+            ? new Date(l.updatedAt).toLocaleDateString("nl-NL")
+            : "zojuist",
+        }))
+      );
+    } catch {
+      // Database not available yet, show empty state
+    }
+  }
+
+  const handleSaveProfile = async (name: string, emoji: string, color: string) => {
+    try {
+      const dbProfile = await createProfile(name, emoji, color);
+      const newProfile: LocalProfile = {
+        id: dbProfile.id,
+        name: dbProfile.name,
+        emoji: dbProfile.emoji,
+        color: dbProfile.color,
+      };
+      setLocalProfile(newProfile);
+      setProfile(newProfile);
+      setShowProfileDialog(false);
+    } catch {
+      // If DB not available, create local-only profile
+      const newProfile: LocalProfile = {
+        id: crypto.randomUUID(),
+        name,
+        emoji,
+        color,
+      };
+      setLocalProfile(newProfile);
+      setProfile(newProfile);
+      setShowProfileDialog(false);
+    }
+  };
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-background">
+        <ShoppingCart className="size-8 text-green-600 animate-pulse" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col min-h-dvh bg-zinc-50">
+      {/* Header with gradient */}
+      <header className="gradient-header text-white pb-6 pt-4 px-4 rounded-b-3xl shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {/* Profile avatar */}
+            {profile && (
+              <div
+                className="flex items-center justify-center rounded-full text-xl shadow-md"
+                style={{
+                  width: 44,
+                  height: 44,
+                  backgroundColor: profile.color,
+                }}
+              >
+                {profile.emoji}
+              </div>
+            )}
+            <div>
+              <h1 className="text-xl font-bold">
+                Hoi, {profile?.name ?? "daar"}!
+              </h1>
+              <p className="text-sm text-white/80">
+                Wat staat er op je lijstje?
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20"
+            onClick={() =>
+              setShowProfileDialog(true)
+            }
+          >
+            <Settings className="size-5" />
+          </Button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* New list button */}
+        <Link href="/lijst/nieuw">
+          <Button className="w-full h-12 bg-white text-green-700 hover:bg-white/90 font-semibold text-base shadow-md">
+            <Plus className="size-5 mr-2" />
+            Nieuwe lijst
+          </Button>
+        </Link>
+      </header>
+
+      {/* Tab Toggle */}
+      <div className="px-4 pt-5 pb-2">
+        <div className="flex bg-white rounded-lg p-1 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveTab("actief")}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+              activeTab === "actief"
+                ? "bg-green-600 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Actief
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("archief")}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+              activeTab === "archief"
+                ? "bg-green-600 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            Documentation
-          </a>
+            Archief
+          </button>
+        </div>
+      </div>
+
+      {/* Lists */}
+      <main className="flex-1 px-4 pb-24">
+        <div className="flex flex-col gap-3 mt-2">
+          {activeTab === "actief" && lists.length > 0 ? (
+            lists.map((list) => {
+              const progress =
+                list.itemCount > 0
+                  ? (list.checkedCount / list.itemCount) * 100
+                  : 0;
+
+              return (
+                <Link key={list.id} href={`/lijst/${list.id}`}>
+                  <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white">
+                    <CardContent className="flex flex-col gap-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base truncate">
+                            {list.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-0.5">
+                            {list.updatedAt}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Users className="size-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {list.memberCount}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>
+                            {list.checkedCount} van {list.itemCount} items
+                          </span>
+                          <span>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Member avatars */}
+                      <div className="flex items-center gap-1">
+                        {list.members.slice(0, 3).map((m, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-center rounded-full text-xs"
+                            style={{
+                              width: 24,
+                              height: 24,
+                              backgroundColor: m.color,
+                              marginLeft: i > 0 ? -4 : 0,
+                            }}
+                          >
+                            {m.emoji}
+                          </div>
+                        ))}
+                        {list.memberCount > 3 && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs ml-1"
+                          >
+                            +{list.memberCount - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <ShoppingCart className="size-12 text-muted-foreground/30 mb-3" />
+              <p className="text-muted-foreground">
+                {activeTab === "archief"
+                  ? "Geen gearchiveerde lijsten"
+                  : "Nog geen lijsten. Maak er een aan!"}
+              </p>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Floating + button on mobile */}
+      <div className="fixed bottom-6 right-6 z-20 sm:hidden">
+        <Link href="/lijst/nieuw">
+          <Button
+            size="icon"
+            className="size-14 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-lg"
+          >
+            <Plus className="size-6" />
+          </Button>
+        </Link>
+      </div>
+
+      {/* Profile Dialog */}
+      <ProfielDialog
+        open={showProfileDialog}
+        onOpenChange={setShowProfileDialog}
+        onSave={handleSaveProfile}
+        initialValues={
+          profile
+            ? {
+                name: profile.name,
+                emoji: profile.emoji,
+                color: profile.color,
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
