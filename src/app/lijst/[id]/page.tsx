@@ -23,6 +23,7 @@ import {
   addItem,
   toggleItem,
   archiveList,
+  ensureProfileInDb,
 } from "@/lib/actions";
 
 export default function LijstPage() {
@@ -96,6 +97,7 @@ export default function LijstPage() {
     );
     const profile = getLocalProfile();
     if (profile) {
+      await ensureProfileInDb(profile.id, profile.name, profile.emoji, profile.color);
       await toggleItem(id, profile.id);
     }
   };
@@ -104,6 +106,7 @@ export default function LijstPage() {
     const profile = getLocalProfile();
     if (!profile) return;
 
+    await ensureProfileInDb(profile.id, profile.name, profile.emoji, profile.color);
     const cat: string = category || guessCategory(name) || "overig";
     const newItem: GroceryItem = {
       id: Date.now().toString(),

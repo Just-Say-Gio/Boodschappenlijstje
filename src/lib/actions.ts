@@ -46,6 +46,25 @@ export async function updateProfile(
   return updated;
 }
 
+export async function ensureProfileInDb(
+  id: string,
+  name: string,
+  emoji: string,
+  color: string
+) {
+  await ensureMigrated();
+  const existing = await db.query.profiles.findFirst({
+    where: eq(profiles.id, id),
+  });
+  if (existing) return existing;
+  // Profile only exists in localStorage, sync to DB
+  const [profile] = await db
+    .insert(profiles)
+    .values({ id, name, emoji, color })
+    .returning();
+  return profile;
+}
+
 // ── Lists ───────────────────────────────────────────────────────────────────
 
 export async function createList(name: string, profileId: string) {

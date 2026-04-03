@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { getLocalProfile } from "@/lib/profile";
-import { createList } from "@/lib/actions";
+import { createList, ensureProfileInDb } from "@/lib/actions";
 
 const QUICK_SUGGESTIONS = [
   "Weekboodschappen",
@@ -31,6 +31,7 @@ export default function NieuweLijstPage() {
         router.push("/");
         return;
       }
+      await ensureProfileInDb(profile.id, profile.name, profile.emoji, profile.color);
       const list = await createList(name.trim(), profile.id);
       router.push(`/lijst/${list.id}`);
     } catch {
