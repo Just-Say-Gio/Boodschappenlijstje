@@ -7,9 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npx tsx src/db/migrate.ts && next build",
+    "build": "next build",
     "build:local": "next build",
     "db:push": "npx drizzle-kit push",
+    "db:migrate": "npx tsx src/db/migrate.ts",
     "start": "next start",
     "lint": "eslint"
   },
