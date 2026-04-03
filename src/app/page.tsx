@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Settings, Plus, ShoppingCart, Users, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import {
   setLocalProfile,
   type LocalProfile,
 } from "@/lib/profile";
-import { createProfile, getAllLists } from "@/lib/actions";
+import { createProfile, getAllLists, getAllArchivedLists } from "@/lib/actions";
 import { toast } from "sonner";
 
 interface ListSummary {
@@ -29,11 +30,13 @@ interface ListSummary {
 const APP_URL = "https://boodschappenlijstje-production.up.railway.app";
 
 export default function Home() {
+  const router = useRouter();
   const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<"actief" | "archief">("actief");
   const [mounted, setMounted] = useState(false);
   const [lists, setLists] = useState<ListSummary[]>([]);
+  const [archivedLists, setArchivedLists] = useState<ListSummary[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -47,32 +50,51 @@ export default function Home() {
     loadLists();
   }, []);
 
+  function mapListData(l: Awaited<ReturnType<typeof getAllLists>>[number]): ListSummary {
+    return {
+      id: l.id,
+      name: l.name,
+      itemCount: l.items.length,
+      checkedCount: l.items.filter((i) => i.checked).length,
+      memberCount: l.members.length,
+      members: l.members.map((m) => ({
+        emoji: m.profile.emoji,
+        color: m.profile.color,
+      })),
+      creator: l.creator
+        ? { name: l.creator.name, emoji: l.creator.emoji, color: l.creator.color }
+        : null,
+      updatedAt: l.updatedAt
+        ? new Date(l.updatedAt).toLocaleDateString("nl-NL")
+        : "zojuist",
+    };
+  }
+
   async function loadLists() {
     try {
       const allLists = await getAllLists();
-      setLists(
-        allLists.map((l) => ({
-          id: l.id,
-          name: l.name,
-          itemCount: l.items.length,
-          checkedCount: l.items.filter((i) => i.checked).length,
-          memberCount: l.members.length,
-          members: l.members.map((m) => ({
-            emoji: m.profile.emoji,
-            color: m.profile.color,
-          })),
-          creator: l.creator
-            ? { name: l.creator.name, emoji: l.creator.emoji, color: l.creator.color }
-            : null,
-          updatedAt: l.updatedAt
-            ? new Date(l.updatedAt).toLocaleDateString("nl-NL")
-            : "zojuist",
-        }))
-      );
+      setLists(allLists.map(mapListData));
     } catch {
       // Database not available yet
     }
   }
+
+  async function loadArchivedLists() {
+    try {
+      const allArchived = await getAllArchivedLists();
+      setArchivedLists(allArchived.map(mapListData));
+    } catch {
+      // Database not available yet
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === "archief") {
+      loadArchivedLists();
+    }
+  }, [activeTab]);
+
+  const totalItemCount = lists.reduce((sum, l) => sum + l.itemCount, 0);
 
   const handleSaveProfile = async (name: string, emoji: string, color: string) => {
     try {
@@ -134,7 +156,14 @@ export default function Home() {
       {/* Header with gradient */}
       <header className="gradient-header text-white pb-6 pt-4 px-4 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+          <div
+            className={`flex items-center gap-3 ${lists.length === 1 ? "cursor-pointer" : ""}`}
+            onClick={() => {
+              if (lists.length === 1) {
+                router.push(`/lijst/${lists[0].id}`);
+              }
+            }}
+          >
             {/* Profile avatar */}
             {profile && (
               <div
@@ -153,7 +182,11 @@ export default function Home() {
                 {profile ? `Hoi, ${profile.name}!` : "🌴 Boodschappenlijstje"}
               </h1>
               <p className="text-sm text-white/80">
-                {profile ? "Wat staat er op je lijstje?" : "Maak een profiel om mee te doen"}
+                {profile
+                  ? totalItemCount > 0
+                    ? `${totalItemCount} items op ${lists.length === 1 ? "je lijstje" : `${lists.length} lijstjes`}`
+                    : "Wat staat er op je lijstje?"
+                  : "Maak een profiel om mee te doen"}
               </p>
             </div>
           </div>
@@ -243,95 +276,106 @@ export default function Home() {
       {/* Lists */}
       <main className="flex-1 px-4 pb-24">
         <div className="flex flex-col gap-3 mt-2">
-          {activeTab === "actief" && lists.length > 0 ? (
-            lists.map((list) => {
-              const progress =
-                list.itemCount > 0
-                  ? (list.checkedCount / list.itemCount) * 100
-                  : 0;
+          {(() => {
+            const displayLists = activeTab === "actief" ? lists : archivedLists;
+            if (displayLists.length > 0) {
+              return displayLists.map((list) => {
+                const progress =
+                  list.itemCount > 0
+                    ? (list.checkedCount / list.itemCount) * 100
+                    : 0;
 
-              return (
-                <Link key={list.id} href={`/lijst/${list.id}`}>
-                  <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white">
-                    <CardContent className="flex flex-col gap-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base truncate">
-                            {list.name}
-                          </h3>
-                          {list.creator && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              door {list.creator.emoji} {list.creator.name}
+                return (
+                  <Link key={list.id} href={`/lijst/${list.id}`}>
+                    <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white">
+                      <CardContent className="flex flex-col gap-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-base truncate">
+                                {list.name}
+                              </h3>
+                              {activeTab === "archief" && (
+                                <Badge variant="secondary" className="text-xs shrink-0">
+                                  Gearchiveerd
+                                </Badge>
+                              )}
+                            </div>
+                            {list.creator && (
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                door {list.creator.emoji} {list.creator.name}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {list.updatedAt}
                             </p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {list.updatedAt}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Users className="size-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            {list.memberCount}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Progress bar */}
-                      <div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                          <span>
-                            {list.checkedCount} van {list.itemCount} items
-                          </span>
-                          <span>{Math.round(progress)}%</span>
-                        </div>
-                        <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-cyan-600 rounded-full transition-all duration-500"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Member avatars */}
-                      <div className="flex items-center gap-1">
-                        {list.members.slice(0, 3).map((m, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-center rounded-full text-xs"
-                            style={{
-                              width: 24,
-                              height: 24,
-                              backgroundColor: m.color,
-                              marginLeft: i > 0 ? -4 : 0,
-                            }}
-                          >
-                            {m.emoji}
                           </div>
-                        ))}
-                        {list.memberCount > 3 && (
-                          <Badge
-                            variant="secondary"
-                            className="text-xs ml-1"
-                          >
-                            +{list.memberCount - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <ShoppingCart className="size-12 text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">
-                {activeTab === "archief"
-                  ? "Geen gearchiveerde lijsten"
-                  : "Nog geen lijsten. Maak er een aan!"}
-              </p>
-            </div>
-          )}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Users className="size-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {list.memberCount}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                            <span>
+                              {list.checkedCount} van {list.itemCount} items
+                            </span>
+                            <span>{Math.round(progress)}%</span>
+                          </div>
+                          <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-cyan-600 rounded-full transition-all duration-500"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Member avatars */}
+                        <div className="flex items-center gap-1">
+                          {list.members.slice(0, 3).map((m, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center justify-center rounded-full text-xs"
+                              style={{
+                                width: 24,
+                                height: 24,
+                                backgroundColor: m.color,
+                                marginLeft: i > 0 ? -4 : 0,
+                              }}
+                            >
+                              {m.emoji}
+                            </div>
+                          ))}
+                          {list.memberCount > 3 && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs ml-1"
+                            >
+                              +{list.memberCount - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              });
+            }
+            return (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <ShoppingCart className="size-12 text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground">
+                  {activeTab === "archief"
+                    ? "Geen gearchiveerde lijsten"
+                    : "Nog geen lijsten. Maak er een aan!"}
+                </p>
+              </div>
+            );
+          })()}
         </div>
       </main>
 

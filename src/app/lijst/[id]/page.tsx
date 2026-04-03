@@ -78,16 +78,35 @@ export default function LijstPage() {
     loadData();
   }, [loadData]);
 
-  // SSE for real-time updates
+  // SSE for real-time updates with auto-reconnect
   useEffect(() => {
-    const eventSource = new EventSource(`/api/lists/${listId}/events`);
-    eventSource.onmessage = () => {
-      loadData();
+    let es: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let unmounted = false;
+
+    function connect() {
+      if (unmounted) return;
+      es = new EventSource(`/api/lists/${listId}/events`);
+      es.onmessage = () => {
+        loadData();
+      };
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        // Auto reconnect after 3 seconds
+        if (!unmounted) {
+          reconnectTimer = setTimeout(() => connect(), 3000);
+        }
+      };
+    }
+
+    connect();
+
+    return () => {
+      unmounted = true;
+      es?.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
     };
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
-    return () => eventSource.close();
   }, [listId, loadData]);
 
   const checkedCount = items.filter((i) => i.checked).length;

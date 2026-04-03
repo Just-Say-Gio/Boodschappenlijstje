@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { guessCategory, CATEGORIES } from "@/lib/categories";
 
 interface ToevoegenDrawerProps {
@@ -50,7 +50,10 @@ export function ToevoegenDrawer({
 }: ToevoegenDrawerProps) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -60,16 +63,59 @@ export function ToevoegenDrawer({
     }
   }, [open]);
 
+  const fetchAiSuggestions = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setAiSuggestions([]);
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/ai/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, mode: "autocomplete" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.suggestions)) {
+          setAiSuggestions(data.suggestions);
+        }
+      }
+    } catch {
+      // AI unavailable, fallback suggestions remain visible
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.trim().length >= 2) {
+      debounceRef.current = setTimeout(() => {
+        fetchAiSuggestions(value.trim());
+      }, 400);
+    } else {
+      setAiSuggestions([]);
+    }
+  };
+
   const detectedCategoryId = name.trim() ? guessCategory(name.trim()) : null;
   const detectedCategory = detectedCategoryId
     ? CATEGORIES.find((c) => c.id === detectedCategoryId)
     : null;
 
-  const filteredSuggestions = name.trim().length >= 1
+  // Instant local fallback from MOCK_SUGGESTIONS
+  const localSuggestions = name.trim().length >= 1
     ? MOCK_SUGGESTIONS.filter((s) =>
         s.toLowerCase().startsWith(name.toLowerCase())
       ).slice(0, 5)
     : [];
+
+  // Merge: prefer AI suggestions when available, fallback to local
+  const filteredSuggestions = aiSuggestions.length > 0
+    ? aiSuggestions.slice(0, 5)
+    : localSuggestions;
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -80,6 +126,7 @@ export function ToevoegenDrawer({
     );
     setName("");
     setQuantity("");
+    setAiSuggestions([]);
     // Keep drawer open for rapid entry
     setTimeout(() => inputRef.current?.focus(), 100);
   };
@@ -113,14 +160,14 @@ export function ToevoegenDrawer({
               ref={inputRef}
               placeholder="Wat heb je nodig?"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               onKeyDown={handleKeyDown}
               className="h-12 text-lg px-4"
             />
 
             {/* Autocomplete suggestions */}
-            {filteredSuggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+            {(filteredSuggestions.length > 0 || aiLoading) && (
+              <div className="flex flex-wrap gap-2 items-center">
                 {filteredSuggestions.map((suggestion) => (
                   <button
                     key={suggestion}
@@ -131,6 +178,9 @@ export function ToevoegenDrawer({
                     {suggestion}
                   </button>
                 ))}
+                {aiLoading && (
+                  <Loader2 className="size-4 text-cyan-700 animate-spin" />
+                )}
               </div>
             )}
           </div>

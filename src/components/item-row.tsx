@@ -26,17 +26,11 @@ export function ItemRow({ item, onToggle }: ItemRowProps) {
       }`}
     >
       {/* Checkbox */}
-      <button
-        type="button"
-        onClick={() => onToggle(item.id)}
-        className="flex items-center justify-center shrink-0"
-      >
-        <Checkbox
-          checked={item.checked}
-          onCheckedChange={() => onToggle(item.id)}
-          className="size-6 rounded-md data-checked:bg-cyan-700 data-checked:border-cyan-700"
-        />
-      </button>
+      <Checkbox
+        checked={item.checked}
+        onCheckedChange={() => onToggle(item.id)}
+        className="size-6 rounded-md shrink-0 data-checked:bg-cyan-700 data-checked:border-cyan-700"
+      />
 
       {/* Item Info */}
       <div className="flex-1 min-w-0">
@@ -85,7 +79,7 @@ export function ItemRow({ item, onToggle }: ItemRowProps) {
             ? item.checkedBy.emoji
             : item.addedBy.emoji}
         </div>
-        <span className="text-xs text-muted-foreground hidden sm:inline max-w-[60px] truncate">
+        <span className="text-xs text-muted-foreground truncate max-w-[60px]">
           {item.checked && item.checkedBy
             ? item.checkedBy.name
             : item.addedBy.name}
