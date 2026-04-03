@@ -229,7 +229,7 @@ export default function LijstPage() {
         <div className="px-4 py-3" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <Button
             onClick={() => setDrawerOpen(true)}
-            className="w-full h-12 text-base font-medium bg-green-600 hover:bg-green-700 text-white"
+            className="w-full h-12 text-base font-medium bg-cyan-700 hover:bg-cyan-800 text-white"
           >
             + Toevoegen
           </Button>

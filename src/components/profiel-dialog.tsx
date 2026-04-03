@@ -100,7 +100,7 @@ export function ProfielDialog({
                   onClick={() => setSelectedEmoji(emoji)}
                   className={`flex items-center justify-center rounded-lg text-2xl transition-all duration-150 hover:scale-110 ${
                     selectedEmoji === emoji
-                      ? "ring-2 ring-green-500 ring-offset-2 bg-green-50"
+                      ? "ring-2 ring-cyan-600 ring-offset-2 bg-cyan-50"
                       : "hover:bg-muted"
                   }`}
                   style={{ width: 48, height: 48 }}
@@ -124,7 +124,7 @@ export function ProfielDialog({
                   onClick={() => setSelectedColor(color)}
                   className={`rounded-full transition-all duration-150 hover:scale-110 ${
                     selectedColor === color
-                      ? "ring-2 ring-green-500 ring-offset-2"
+                      ? "ring-2 ring-cyan-600 ring-offset-2"
                       : ""
                   }`}
                   style={{
@@ -142,7 +142,7 @@ export function ProfielDialog({
           <Button
             onClick={handleSave}
             disabled={!name.trim()}
-            className="w-full h-10 bg-green-600 hover:bg-green-700 text-white text-base font-medium"
+            className="w-full h-10 bg-cyan-700 hover:bg-cyan-800 text-white text-base font-medium"
           >
             Opslaan
           </Button>

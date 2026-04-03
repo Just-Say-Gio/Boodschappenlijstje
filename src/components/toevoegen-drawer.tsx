@@ -158,7 +158,7 @@ export function ToevoegenDrawer({
           <Button
             onClick={handleAdd}
             disabled={!name.trim()}
-            className="h-12 text-base font-medium bg-green-600 hover:bg-green-700 text-white"
+            className="h-12 text-base font-medium bg-cyan-700 hover:bg-cyan-800 text-white"
           >
             <Plus className="size-5 mr-1" />
             Toevoegen

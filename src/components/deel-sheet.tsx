@@ -100,7 +100,7 @@ export function DeelSheet({
                 className="shrink-0"
               >
                 {copied ? (
-                  <Check className="size-4 text-green-600" />
+                  <Check className="size-4 text-cyan-700" />
                 ) : (
                   <Copy className="size-4" />
                 )}
@@ -114,7 +114,7 @@ export function DeelSheet({
             className="w-full justify-start gap-3 h-11"
             onClick={handleWhatsAppInvite}
           >
-            <MessageCircle className="size-5 text-green-600" />
+            <MessageCircle className="size-5 text-cyan-700" />
             <span>Uitnodiging via WhatsApp</span>
           </Button>
 
@@ -124,7 +124,7 @@ export function DeelSheet({
             className="w-full justify-start gap-3 h-11"
             onClick={handleWhatsAppList}
           >
-            <MessageCircle className="size-5 text-green-600" />
+            <MessageCircle className="size-5 text-cyan-700" />
             <span>Lijst versturen via WhatsApp</span>
           </Button>
 
@@ -135,7 +135,7 @@ export function DeelSheet({
               className="w-full justify-start gap-3 h-11"
               onClick={handleNativeShare}
             >
-              <Share2 className="size-5 text-green-600" />
+              <Share2 className="size-5 text-cyan-700" />
               <span>Delen</span>
             </Button>
           )}

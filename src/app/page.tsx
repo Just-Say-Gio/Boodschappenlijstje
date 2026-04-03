@@ -12,7 +12,7 @@ import {
   setLocalProfile,
   type LocalProfile,
 } from "@/lib/profile";
-import { createProfile, getMyLists } from "@/lib/actions";
+import { createProfile, getAllLists } from "@/lib/actions";
 
 interface ListSummary {
   id: string;
@@ -21,6 +21,7 @@ interface ListSummary {
   checkedCount: number;
   memberCount: number;
   members: Array<{ emoji: string; color: string }>;
+  creator: { name: string; emoji: string; color: string } | null;
   updatedAt: string;
 }
 
@@ -36,17 +37,15 @@ export default function Home() {
     const stored = getLocalProfile();
     if (stored) {
       setProfile(stored);
-      loadLists(stored.id);
-    } else {
-      setShowProfileDialog(true);
     }
+    loadLists();
   }, []);
 
-  async function loadLists(profileId: string) {
+  async function loadLists() {
     try {
-      const myLists = await getMyLists(profileId);
+      const allLists = await getAllLists();
       setLists(
-        myLists.map((l) => ({
+        allLists.map((l) => ({
           id: l.id,
           name: l.name,
           itemCount: l.items.length,
@@ -56,13 +55,16 @@ export default function Home() {
             emoji: m.profile.emoji,
             color: m.profile.color,
           })),
+          creator: l.creator
+            ? { name: l.creator.name, emoji: l.creator.emoji, color: l.creator.color }
+            : null,
           updatedAt: l.updatedAt
             ? new Date(l.updatedAt).toLocaleDateString("nl-NL")
             : "zojuist",
         }))
       );
     } catch {
-      // Database not available yet, show empty state
+      // Database not available yet
     }
   }
 
@@ -95,7 +97,7 @@ export default function Home() {
   if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-dvh bg-background">
-        <ShoppingCart className="size-8 text-green-600 animate-pulse" />
+        <ShoppingCart className="size-8 text-cyan-700 animate-pulse" />
       </div>
     );
   }
@@ -121,10 +123,10 @@ export default function Home() {
             )}
             <div>
               <h1 className="text-xl font-bold">
-                Hoi, {profile?.name ?? "daar"}!
+                {profile ? `Hoi, ${profile.name}!` : "🌴 Boodschappenlijstje"}
               </h1>
               <p className="text-sm text-white/80">
-                Wat staat er op je lijstje?
+                {profile ? "Wat staat er op je lijstje?" : "Maak een profiel om mee te doen"}
               </p>
             </div>
           </div>
@@ -143,7 +145,7 @@ export default function Home() {
 
         {/* New list button */}
         <Link href="/lijst/nieuw">
-          <Button className="w-full h-12 bg-white text-green-700 hover:bg-white/90 font-semibold text-base shadow-md">
+          <Button className="w-full h-12 bg-white text-cyan-800 hover:bg-white/90 font-semibold text-base shadow-md">
             <Plus className="size-5 mr-2" />
             Nieuwe lijst
           </Button>
@@ -158,7 +160,7 @@ export default function Home() {
             onClick={() => setActiveTab("actief")}
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
               activeTab === "actief"
-                ? "bg-green-600 text-white shadow-sm"
+                ? "bg-cyan-700 text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -169,7 +171,7 @@ export default function Home() {
             onClick={() => setActiveTab("archief")}
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
               activeTab === "archief"
-                ? "bg-green-600 text-white shadow-sm"
+                ? "bg-cyan-700 text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -197,7 +199,12 @@ export default function Home() {
                           <h3 className="font-semibold text-base truncate">
                             {list.name}
                           </h3>
-                          <p className="text-sm text-muted-foreground mt-0.5">
+                          {list.creator && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              door {list.creator.emoji} {list.creator.name}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
                             {list.updatedAt}
                           </p>
                         </div>
@@ -219,7 +226,7 @@ export default function Home() {
                         </div>
                         <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            className="h-full bg-cyan-600 rounded-full transition-all duration-500"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
@@ -273,7 +280,7 @@ export default function Home() {
         <Link href="/lijst/nieuw">
           <Button
             size="icon"
-            className="size-14 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-lg"
+            className="size-14 rounded-full bg-cyan-700 hover:bg-cyan-800 text-white shadow-lg"
           >
             <Plus className="size-6" />
           </Button>

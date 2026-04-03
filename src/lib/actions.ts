@@ -71,6 +71,7 @@ export async function createList(name: string, profileId: string) {
 }
 
 export async function getList(id: string) {
+  await ensureMigrated();
   const list = await db.query.lists.findFirst({
     where: eq(lists.id, id),
     with: {
@@ -88,30 +89,26 @@ export async function getList(id: string) {
   return list ?? null;
 }
 
-export async function getMyLists(profileId: string) {
+export async function getAllLists() {
   await ensureMigrated();
-  const memberships = await db.query.listMembers.findMany({
-    where: eq(listMembers.profileId, profileId),
+  const allLists = await db.query.lists.findMany({
+    where: eq(lists.isArchived, false),
     with: {
-      list: {
+      items: true,
+      members: {
         with: {
-          items: true,
-          members: {
-            with: {
-              profile: true,
-            },
-          },
+          profile: true,
         },
       },
+      creator: true,
     },
+    orderBy: [desc(lists.updatedAt)],
   });
-
-  return memberships
-    .map((m) => m.list)
-    .filter((list) => !list.isArchived);
+  return allLists;
 }
 
 export async function archiveList(id: string) {
+  await ensureMigrated();
   const [updated] = await db
     .update(lists)
     .set({ isArchived: true, updatedAt: new Date() })
@@ -120,26 +117,22 @@ export async function archiveList(id: string) {
   return updated;
 }
 
-export async function getArchivedLists(profileId: string) {
-  const memberships = await db.query.listMembers.findMany({
-    where: eq(listMembers.profileId, profileId),
+export async function getAllArchivedLists() {
+  await ensureMigrated();
+  const allLists = await db.query.lists.findMany({
+    where: eq(lists.isArchived, true),
     with: {
-      list: {
+      items: true,
+      members: {
         with: {
-          items: true,
-          members: {
-            with: {
-              profile: true,
-            },
-          },
+          profile: true,
         },
       },
+      creator: true,
     },
+    orderBy: [desc(lists.updatedAt)],
   });
-
-  return memberships
-    .map((m) => m.list)
-    .filter((list) => list.isArchived);
+  return allLists;
 }
 
 // ── Items ───────────────────────────────────────────────────────────────────
@@ -151,6 +144,7 @@ export async function addItem(
   category: string | null,
   addedBy: string
 ) {
+  await ensureMigrated();
   const [item] = await db
     .insert(items)
     .values({
@@ -180,6 +174,7 @@ export async function addItem(
 }
 
 export async function toggleItem(itemId: string, profileId: string) {
+  await ensureMigrated();
   const existing = await db.query.items.findFirst({
     where: eq(items.id, itemId),
   });
@@ -290,6 +285,7 @@ export async function getListMembers(listId: string) {
 // ── Activity ────────────────────────────────────────────────────────────────
 
 export async function getListActivity(listId: string, limit: number = 50) {
+  await ensureMigrated();
   const logs = await db.query.activityLog.findMany({
     where: eq(activityLog.listId, listId),
     with: {
@@ -304,6 +300,7 @@ export async function getListActivity(listId: string, limit: number = 50) {
 // ── List Items ──────────────────────────────────────────────────────────────
 
 export async function getListItems(listId: string) {
+  await ensureMigrated();
   const listItems = await db.query.items.findMany({
     where: eq(items.listId, listId),
     orderBy: [asc(items.sortOrder), asc(items.createdAt)],

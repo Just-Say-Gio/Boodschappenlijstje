@@ -34,7 +34,7 @@ export function ItemRow({ item, onToggle }: ItemRowProps) {
         <Checkbox
           checked={item.checked}
           onCheckedChange={() => onToggle(item.id)}
-          className="size-6 rounded-md data-checked:bg-green-600 data-checked:border-green-600"
+          className="size-6 rounded-md data-checked:bg-cyan-700 data-checked:border-cyan-700"
         />
       </button>
 

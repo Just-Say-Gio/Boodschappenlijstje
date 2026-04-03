@@ -21,7 +21,7 @@ export function BoodschappenLijst({ items, onToggle }: BoodschappenLijstProps) {
         particleCount: 120,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ["#16a34a", "#22c55e", "#4ade80", "#fbbf24", "#f97316"],
+        colors: ["#0891B2", "#06B6D4", "#67E8F9", "#fbbf24", "#f97316"],
       });
     }
     prevAllDone.current = allDone;
@@ -67,7 +67,7 @@ export function BoodschappenLijst({ items, onToggle }: BoodschappenLijstProps) {
       {/* Progress footer */}
       <div className="px-4 py-4 text-center">
         {allDone ? (
-          <p className="text-lg font-medium text-green-600">
+          <p className="text-lg font-medium text-cyan-700">
             Alles gedaan! 🎉
           </p>
         ) : (

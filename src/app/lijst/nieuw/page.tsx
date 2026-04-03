@@ -92,7 +92,7 @@ export default function NieuweLijstPage() {
                   onClick={() => setName(suggestion)}
                   className={`px-4 py-2 text-sm rounded-full border transition-all duration-150 ${
                     name === suggestion
-                      ? "bg-green-600 text-white border-green-600"
+                      ? "bg-cyan-700 text-white border-cyan-700"
                       : "bg-background text-foreground border-border hover:bg-muted"
                   }`}
                 >
@@ -106,7 +106,7 @@ export default function NieuweLijstPage() {
           <Button
             onClick={handleCreate}
             disabled={!name.trim() || creating}
-            className="h-12 text-base font-medium bg-green-600 hover:bg-green-700 text-white w-full"
+            className="h-12 text-base font-medium bg-cyan-700 hover:bg-cyan-800 text-white w-full"
           >
             Aanmaken
           </Button>

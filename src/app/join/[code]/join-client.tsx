@@ -34,8 +34,8 @@ export function JoinListClient({ shareCode }: JoinListClientProps) {
 
   // New profile form state
   const [name, setName] = useState("");
-  const [selectedEmoji, setSelectedEmoji] = useState(PROFILE_EMOJIS[0]);
-  const [selectedColor, setSelectedColor] = useState(PROFILE_COLORS[0]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>(PROFILE_EMOJIS[0]);
+  const [selectedColor, setSelectedColor] = useState<string>(PROFILE_COLORS[0]);
 
   useEffect(() => {
     const stored = getLocalProfile();
@@ -152,7 +152,7 @@ export function JoinListClient({ shareCode }: JoinListClientProps) {
                       onClick={() => setSelectedEmoji(emoji)}
                       className={`flex size-10 items-center justify-center rounded-lg text-xl transition-all ${
                         selectedEmoji === emoji
-                          ? "bg-green-100 ring-2 ring-green-500 dark:bg-green-900/30"
+                          ? "bg-cyan-100 ring-2 ring-cyan-600 dark:bg-cyan-900/30"
                           : "bg-muted hover:bg-muted/80"
                       }`}
                     >
@@ -174,7 +174,7 @@ export function JoinListClient({ shareCode }: JoinListClientProps) {
                       onClick={() => setSelectedColor(color)}
                       className={`size-8 rounded-full transition-all ${
                         selectedColor === color
-                          ? "ring-2 ring-offset-2 ring-green-500"
+                          ? "ring-2 ring-offset-2 ring-cyan-600"
                           : "hover:scale-110"
                       }`}
                       style={{ backgroundColor: color }}
@@ -194,7 +194,7 @@ export function JoinListClient({ shareCode }: JoinListClientProps) {
 
         <CardFooter>
           <Button
-            className="w-full bg-green-600 text-white hover:bg-green-700"
+            className="w-full bg-cyan-700 text-white hover:bg-cyan-800"
             onClick={handleJoin}
             disabled={joining || (!profile && !name.trim())}
           >
