@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/db";
+import { db, ensureMigrated } from "@/db";
 import {
   profiles,
   lists,
@@ -18,6 +18,7 @@ export async function createProfile(
   emoji: string,
   color: string
 ) {
+  await ensureMigrated();
   const [profile] = await db
     .insert(profiles)
     .values({ name, emoji, color })
@@ -26,6 +27,7 @@ export async function createProfile(
 }
 
 export async function getProfile(id: string) {
+  await ensureMigrated();
   const profile = await db.query.profiles.findFirst({
     where: eq(profiles.id, id),
   });
@@ -47,6 +49,7 @@ export async function updateProfile(
 // ── Lists ───────────────────────────────────────────────────────────────────
 
 export async function createList(name: string, profileId: string) {
+  await ensureMigrated();
   const shareCode = nanoid(8);
 
   const [list] = await db
@@ -86,6 +89,7 @@ export async function getList(id: string) {
 }
 
 export async function getMyLists(profileId: string) {
+  await ensureMigrated();
   const memberships = await db.query.listMembers.findMany({
     where: eq(listMembers.profileId, profileId),
     with: {
@@ -240,6 +244,7 @@ export async function removeItem(itemId: string, profileId: string) {
 // ── List Sharing / Members ──────────────────────────────────────────────────
 
 export async function joinList(shareCode: string, profileId: string) {
+  await ensureMigrated();
   const list = await db.query.lists.findFirst({
     where: eq(lists.shareCode, shareCode),
   });
