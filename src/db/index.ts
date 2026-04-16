@@ -90,6 +90,31 @@ export async function ensureMigrated() {
         updated_at TIMESTAMP DEFAULT now() NOT NULL
       )
     `;
+    // One-time vote migration: swap Grand Palace (sat-am ↔ fri-am) and
+    // rename covankessel-am → covankessel-rattanakosin (moves fri-am → sat-am)
+    // Idempotent: after first run, no rows match.
+    await client`
+      UPDATE bangkok_votes
+      SET slot_id = 'fri-am'
+      WHERE slot_id = 'sat-am' AND option_id = 'grand-palace'
+        AND NOT EXISTS (
+          SELECT 1 FROM bangkok_votes b2
+          WHERE b2.voter = bangkok_votes.voter AND b2.slot_id = 'fri-am'
+        )
+    `;
+    await client`
+      UPDATE bangkok_votes
+      SET slot_id = 'sat-am', option_id = 'covankessel-rattanakosin'
+      WHERE slot_id = 'fri-am' AND option_id = 'covankessel-am'
+        AND NOT EXISTS (
+          SELECT 1 FROM bangkok_votes b2
+          WHERE b2.voter = bangkok_votes.voter AND b2.slot_id = 'sat-am'
+        )
+    `;
+    // Clean up any leftover stale votes from the swap
+    await client`DELETE FROM bangkok_votes WHERE slot_id = 'fri-am' AND option_id = 'covankessel-am'`;
+    await client`DELETE FROM bangkok_votes WHERE slot_id = 'sat-am' AND option_id = 'grand-palace'`;
+
     console.log("Database tables ensured");
   } catch (err) {
     console.error("Migration error:", err);

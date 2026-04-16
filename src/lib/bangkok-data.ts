@@ -129,13 +129,13 @@ export const DAYS: Day[] = [
             vibe: "Once in a lifetime",
           },
           {
-            id: "covankessel-am",
-            title: "🚲 Co van Kessel Combo (07:00)",
-            desc: "Nederlands, 30+ jr, 5★. 5h fietsen+boot door oud BKK + Chinatown + kanalen. Lunch inbegrepen. Ook 13:00 slot mogelijk",
+            id: "grand-palace",
+            title: "👑 Grand Palace",
+            desc: "08:30-15:30 (last entry 14:30). Start 08:30 vóór de hitte + queue. Dress code: lange broek/schouders bedekt. ฿500pp",
             type: "culture",
-            dur: "5h",
-            cost: "฿1,800pp",
-            vibe: "Hidden Bangkok",
+            dur: "3h",
+            cost: "฿500pp",
+            vibe: "Bucket list #1",
           },
           {
             id: "wat-pho-am",
@@ -256,13 +256,13 @@ export const DAYS: Day[] = [
         id: "sat-am",
         options: [
           {
-            id: "grand-palace",
-            title: "👑 Grand Palace",
-            desc: "08:30-15:30 (last entry 14:30). Start 08:30 want 35-40°C + queue. Dress code: lange broek/schouders bedekt",
+            id: "covankessel-rattanakosin",
+            title: "🚲 Co Rattanakosin (3h)",
+            desc: "covankessel.com/bangkok/co-rattanakosin — start Tha Phra Chan (15-20 min lopen van Khao San). Fietsen door oud Rattanakosin. Minder lang dan Combo, lichter voor zaterdag",
             type: "culture",
             dur: "3h",
-            cost: "฿500pp",
-            vibe: "Bucket list #1",
+            cost: "฿1,400pp",
+            vibe: "Hidden Bangkok lite",
           },
           {
             id: "golden-mount",
