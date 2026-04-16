@@ -159,3 +159,15 @@ export const activityLogRelations = relations(activityLog, ({ one }) => ({
     references: [profiles.id],
   }),
 }));
+
+// ── Bangkok Votes ───────────────────────────────────────────────────────────
+export const bangkokVotes = pgTable(
+  "bangkok_votes",
+  {
+    voter: text("voter").notNull(),
+    slotId: text("slot_id").notNull(),
+    optionId: text("option_id").notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.voter, table.slotId] })]
+);

@@ -243,6 +243,24 @@ export default function Home() {
             </Button>
           </Link>
         </div>
+
+        {/* Bangkok vote banner */}
+        <Link href="/bangkok" className="block mt-3">
+          <div
+            className="rounded-xl px-4 py-3 text-center border-2 border-amber-300/40 shadow-md"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(212,165,116,0.95), rgba(232,184,75,0.95))",
+            }}
+          >
+            <div className="text-base font-bold text-zinc-900">
+              🇹🇭 Stem op Bangkok plan
+            </div>
+            <div className="text-xs text-zinc-800/80 mt-0.5">
+              Thu 16 – Sun 19 Apr · Tap om mee te beslissen
+            </div>
+          </div>
+        </Link>
       </header>
 
       {/* Tab Toggle */}

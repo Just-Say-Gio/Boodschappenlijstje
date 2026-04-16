@@ -8,6 +8,7 @@ import {
   items,
   activityLog,
   agendaTopics,
+  bangkokVotes,
 } from "@/db/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -394,4 +395,59 @@ export async function updateAgendaNotes(topicId: string, notes: string) {
 export async function removeAgendaTopic(topicId: string) {
   await ensureMigrated();
   await db.delete(agendaTopics).where(eq(agendaTopics.id, topicId));
+}
+
+// ── Bangkok Votes ──────────────────────────────────────────────────────────
+
+export async function getBangkokVotes() {
+  await ensureMigrated();
+  const rows = await db.query.bangkokVotes.findMany();
+  // Transform to nested { [slotId]: { [voter]: optionId } }
+  const result: Record<string, Record<string, string>> = {};
+  for (const row of rows) {
+    if (!result[row.slotId]) result[row.slotId] = {};
+    result[row.slotId][row.voter] = row.optionId;
+  }
+  return result;
+}
+
+export async function castBangkokVote(
+  voter: string,
+  slotId: string,
+  optionId: string
+) {
+  await ensureMigrated();
+  const existing = await db.query.bangkokVotes.findFirst({
+    where: and(
+      eq(bangkokVotes.voter, voter),
+      eq(bangkokVotes.slotId, slotId)
+    ),
+  });
+
+  if (existing?.optionId === optionId) {
+    // Toggle off - delete the vote
+    await db
+      .delete(bangkokVotes)
+      .where(
+        and(eq(bangkokVotes.voter, voter), eq(bangkokVotes.slotId, slotId))
+      );
+  } else if (existing) {
+    // Update to different option
+    await db
+      .update(bangkokVotes)
+      .set({ optionId, updatedAt: new Date() })
+      .where(
+        and(eq(bangkokVotes.voter, voter), eq(bangkokVotes.slotId, slotId))
+      );
+  } else {
+    // New vote
+    await db.insert(bangkokVotes).values({ voter, slotId, optionId });
+  }
+
+  return getBangkokVotes();
+}
+
+export async function resetBangkokVotes() {
+  await ensureMigrated();
+  await db.delete(bangkokVotes);
 }

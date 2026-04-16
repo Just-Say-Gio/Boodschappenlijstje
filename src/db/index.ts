@@ -66,6 +66,15 @@ export async function ensureMigrated() {
       )
     `;
     await client`
+      CREATE TABLE IF NOT EXISTS bangkok_votes (
+        voter TEXT NOT NULL,
+        slot_id TEXT NOT NULL,
+        option_id TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT now() NOT NULL,
+        PRIMARY KEY (voter, slot_id)
+      )
+    `;
+    await client`
       CREATE TABLE IF NOT EXISTS agenda_topics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title TEXT NOT NULL,
