@@ -130,12 +130,12 @@ export const DAYS: Day[] = [
           },
           {
             id: "covankessel-am",
-            title: "🚲 Co van Kessel ochtendtour",
-            desc: "Nederlands, 30+ jr, 5★. 07:30 start, fietsen+boot door oud BKK voor het echt heet wordt. Terug ±12:30 met lunch",
+            title: "🚲 Co van Kessel (08:00)",
+            desc: "Nederlands, 30+ jr, 5★. 08:00 start, fietsen+boot door oud BKK + Chinatown + kanalen. Terug ±13:00 met lunch onderweg",
             type: "culture",
             dur: "5h",
             cost: "฿1,800pp",
-            vibe: "Hidden Bangkok cool",
+            vibe: "Hidden Bangkok",
           },
           {
             id: "wat-pho-am",
@@ -204,15 +204,6 @@ export const DAYS: Day[] = [
         id: "fri-eve",
         options: [
           {
-            id: "covankessel-eve",
-            title: "🚲 Co van Kessel AVONDtour",
-            desc: "17:00 start. 3h fietsen door verlicht Chinatown + bloemenmarkt + tempels by night. Magisch en koel",
-            type: "culture",
-            dur: "3h",
-            cost: "฿1,800pp",
-            vibe: "Best of BKK",
-          },
-          {
             id: "jodd-fri",
             title: "🌙 Jodd Fairs",
             desc: "Neon food stalls, cocktails, live muziek. Vlak bij hotel. Chill afsluiter",
@@ -238,6 +229,15 @@ export const DAYS: Day[] = [
             dur: "2.5h",
             cost: "฿1,500pp",
             vibe: "Romantisch/chic",
+          },
+          {
+            id: "chinatown-eve",
+            title: "🍜 Yaowarat Chinatown food walk",
+            desc: "Thip Samai pad thai, T&K Seafood, mango sticky rice. Pak Khlong bloemenmarkt erna",
+            type: "food",
+            dur: "3h",
+            cost: "฿500pp",
+            vibe: "Street food heaven",
           },
         ],
       },
